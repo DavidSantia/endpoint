@@ -1,5 +1,5 @@
 # endpoint
-Configure an enpoint struct to make either sequential or concurrent API requests in Go
+Simplified API access in Go. Configure an enpoint struct, then make a batch of sequential or concurrent requests.
 
 ## Overview
 This package is intended to provide a streamlined way to make repeated requests to an API.
