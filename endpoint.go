@@ -10,19 +10,20 @@ type Endpoint struct {
 	Url         string
 	Method      string
 	Headers     map[string]string
+	Client      *http.Client
 	MaxParallel int
 	MaxRetries  int
 	Retries     int
 	Parse       func(b []byte) (interface{}, error)
 }
 
-func (ep *Endpoint) GetSequential(ids []string) (results []interface{}) {
+func (ep *Endpoint) DoSequential(ids []string) (results []interface{}) {
 	var err error
 	var id string
 	var result interface{}
 
 	for _, id = range ids {
-		result, err = ep.GetEndpoint(id)
+		result, err = ep.DoRequest(id)
 		if err != nil {
 			fmt.Printf("Error: %v\n", err)
 		} else {
@@ -32,7 +33,7 @@ func (ep *Endpoint) GetSequential(ids []string) (results []interface{}) {
 	return
 }
 
-func (ep *Endpoint) GetConcurrent(ids []string) (results []interface{}) {
+func (ep *Endpoint) DoConcurrent(ids []string) (results []interface{}) {
 	var err error
 	var id string
 	var result interface{}
@@ -50,7 +51,7 @@ func (ep *Endpoint) GetConcurrent(ids []string) (results []interface{}) {
 	}()
 
 	// Set max parallelism
-	max = len(ids) / 4 + 1
+	max = len(ids)/4 + 1
 	if max > ep.MaxParallel {
 		max = ep.MaxParallel
 	}
@@ -61,7 +62,7 @@ func (ep *Endpoint) GetConcurrent(ids []string) (results []interface{}) {
 		go func() {
 			for {
 				id = <-inputChan
-				result, err = ep.GetEndpoint(id)
+				result, err = ep.DoRequest(id)
 				if err != nil {
 					fmt.Printf("Error: %v\n", err)
 					outputChan <- "Error"
@@ -74,7 +75,7 @@ func (ep *Endpoint) GetConcurrent(ids []string) (results []interface{}) {
 
 	// Retrieve all results
 	for i = 0; i < len(ids); i++ {
-		result = <- outputChan
+		result = <-outputChan
 		results = append(results, result)
 	}
 
@@ -83,7 +84,8 @@ func (ep *Endpoint) GetConcurrent(ids []string) (results []interface{}) {
 	return
 }
 
-func (ep *Endpoint) GetEndpoint(id string) (result interface{}, err error) {
+func (ep *Endpoint) DoRequest(id string) (result interface{}, err error) {
+	var client *http.Client
 	var req *http.Request
 	var res *http.Response
 	var i int
@@ -97,9 +99,16 @@ func (ep *Endpoint) GetEndpoint(id string) (result interface{}, err error) {
 		req.Header.Add(key, value)
 	}
 
+	// Get client
+	if ep.Client == nil {
+		client = http.DefaultClient
+	} else {
+		client = ep.Client
+	}
+
 	// Make request, retry if required
 	for i = 0; i < ep.MaxRetries; i++ {
-		res, err = http.DefaultClient.Do(req)
+		res, err = client.Do(req)
 		if err == nil {
 			b, err = ioutil.ReadAll(res.Body)
 			res.Body.Close()

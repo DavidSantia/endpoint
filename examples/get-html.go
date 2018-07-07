@@ -3,6 +3,7 @@ package main
 import (
 	"bytes"
 	"fmt"
+	"net/http"
 	"strings"
 	"time"
 
@@ -11,13 +12,13 @@ import (
 )
 
 func main() {
-	var terms []string
+	var ids []string
 	var definition string
 	var result interface{}
 	var results []interface{}
 	var tStart time.Time
 
-	terms = []string{
+	ids = []string{
 		"Fruit",
 		"Seed",
 		"Angiosperms",
@@ -40,28 +41,32 @@ func main() {
 	}
 
 	ep := endpoint.Endpoint{
-		Url:         "https://www.biology-online.org/dictionary/",
-		Method:      "GET",
+		Url:    "https://www.biology-online.org/dictionary/",
+		Method: "GET",
+		Client: &http.Client{
+			Timeout:   10 * time.Second,
+			Transport: &http.Transport{TLSHandshakeTimeout: 5 * time.Second},
+		},
 		MaxParallel: 8,
 		MaxRetries:  3,
 		Parse:       ParseDefinition,
 	}
 
 	ep.Retries = 0
-	fmt.Printf("== Calling GetSequential [%d entries] ==\n", len(terms))
+	fmt.Printf("== Calling DoSequential [%d entries] ==\n", len(ids))
 	tStart = time.Now()
-	results = ep.GetSequential(terms)
+	results = ep.DoSequential(ids)
 	fmt.Printf("Elapsed: %v\n", time.Now().Sub(tStart))
 	fmt.Printf("Error Rate: %d retries, %.2f percent\n\n",
-		ep.Retries, float32(ep.Retries)/float32(len(terms)))
+		ep.Retries, float32(ep.Retries)/float32(len(ids)))
 
 	ep.Retries = 0
-	fmt.Printf("== Calling GetConcurrent [%d entries] ==\n", len(terms))
+	fmt.Printf("== Calling DoConcurrent [%d entries] ==\n", len(ids))
 	tStart = time.Now()
-	results = ep.GetConcurrent(terms)
+	results = ep.DoConcurrent(ids)
 	fmt.Printf("Elapsed: %v\n", time.Now().Sub(tStart))
 	fmt.Printf("Error Rate: %d retries, %.2f percent\n\n",
-		ep.Retries, float32(ep.Retries)/float32(len(terms)))
+		ep.Retries, float32(ep.Retries)/float32(len(ids)))
 
 	fmt.Printf("== Results ==\n")
 	for _, result = range results {

@@ -1,11 +1,12 @@
 package main
 
 import (
+	"encoding/json"
 	"fmt"
+	"net/http"
 	"time"
 
 	"github.com/DavidSantia/endpoint"
-	"encoding/json"
 )
 
 type Office struct {
@@ -32,13 +33,13 @@ type Address struct {
 }
 
 func main() {
-	var offices []string
+	var ids []string
 	var office Office
 	var result interface{}
 	var results []interface{}
 	var tStart time.Time
 
-	offices = []string{
+	ids = []string{
 		"AKQ",
 		"FWD",
 		"SGX",
@@ -58,29 +59,33 @@ func main() {
 	}
 
 	ep := endpoint.Endpoint{
-		Url:         "https://api.weather.gov/offices/",
-		Method:      "GET",
-		Headers:     map[string]string{"Content-Type": "application/json", "Accept": "*"},
+		Url:     "https://api.weather.gov/offices/",
+		Method:  "GET",
+		Headers: map[string]string{"Content-Type": "application/json", "Accept": "*"},
+		Client: &http.Client{
+			Timeout:   10 * time.Second,
+			Transport: &http.Transport{TLSHandshakeTimeout: 5 * time.Second},
+		},
 		MaxParallel: 8,
 		MaxRetries:  3,
 		Parse:       ParseOffice,
 	}
 
 	ep.Retries = 0
-	fmt.Printf("== Calling GetSequential [%d entries] ==\n", len(offices))
+	fmt.Printf("== Calling DoSequential [%d entries] ==\n", len(ids))
 	tStart = time.Now()
-	results = ep.GetSequential(offices)
+	results = ep.DoSequential(ids)
 	fmt.Printf("Elapsed: %v\n", time.Now().Sub(tStart))
 	fmt.Printf("Error Rate: %d retries, %.2f percent\n\n",
-		ep.Retries, float32(ep.Retries)/float32(len(offices)))
+		ep.Retries, float32(ep.Retries)/float32(len(ids)))
 
 	ep.Retries = 0
-	fmt.Printf("== Calling GetConcurrent [%d entries] ==\n", len(offices))
+	fmt.Printf("== Calling DoConcurrent [%d entries] ==\n", len(ids))
 	tStart = time.Now()
-	results = ep.GetConcurrent(offices)
+	results = ep.DoConcurrent(ids)
 	fmt.Printf("Elapsed: %v\n", time.Now().Sub(tStart))
 	fmt.Printf("Error Rate: %d retries, %.2f percent\n\n",
-		ep.Retries, float32(ep.Retries)/float32(len(offices)))
+		ep.Retries, float32(ep.Retries)/float32(len(ids)))
 
 	fmt.Printf("== Results ==\n")
 	for _, result = range results {

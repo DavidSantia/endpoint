@@ -71,11 +71,11 @@ ep := endpoint.Endpoint{
 
 Once you have configured an endpoint, create a parse function as shown above. Then you can perform a single request
 using the following function:
-#### func (ep *Endpoint) GetEndpoint(id string) (result interface{}, err error)
+#### func (ep *Endpoint) DoRequest(id string) (result interface{}, err error)
 
 This function will retry the request up to *ep.MaxRetries* times, before giving up.
 
-Once you have it working for a single request, you can then call either the GetSequential() or GetConcurrent()
+Once you have it working for a single request, you can then call either the DoSequential() or DoConcurrent()
 functions for an array of ID's.
 
 ## Sequential versus Concurrent
@@ -84,11 +84,11 @@ to make the API requests in parallel.
 
 ```sh
 $ go run examples/get-json.go
-== Calling GetSequential [16 entries] ==
+== Calling DoSequential [16 entries] ==
 Elapsed: 4.493768998s
 Error Rate: 0 retries, 0.00 percent
 
-== Calling GetConcurrent [16 entries] ==
+== Calling DoConcurrent [16 entries] ==
 Starting requestor #1
 Starting requestor #2
 Starting requestor #3
@@ -98,7 +98,7 @@ Elapsed: 91.076842ms
 Error Rate: 0 retries, 0.00 percent
 ```
 
-GetConcurrent() uses the setting *ep.MaxParallel* to configure the maximum concurrency to use.
+DoConcurrent() uses the setting *ep.MaxParallel* to configure the maximum concurrency to use.
 The sample programs set this to 8. This is a pretty good setting depending on the bandwith of your
 internet connection, and the bandwidth of the API you are accessing.
 
@@ -107,7 +107,7 @@ If you set it too high, you may see the error rate of retries go up.
 Error Rate: 10 retries, 0.14 percent
 ```
 
-The GetConcurrent() function considers that there is some initial cost to launching multiple requestors.
+The DoConcurrent() function considers that there is some initial cost to launching multiple requestors.
 So it calculates max as follows:
 ```go
 max = len(ids) / 4 + 1
@@ -116,3 +116,8 @@ if max > ep.MaxParallel {
 }
 ```
 This is why you see only 5 requestors when given 16 ID's, instead of the max possible setting.
+
+## Notes
+
+Although the DoConcurrent() function is efficient in terms of general parallelism, the examples have not been
+optimized for connection persistence.  This would save a good deal of time by reducing TLS handshakes.
