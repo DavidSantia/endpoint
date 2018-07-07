@@ -1,5 +1,5 @@
 # endpoint
-Simplified API access in Go. Configure an enpoint struct, then make a batch of sequential or concurrent requests.
+Simplified API access in Go. Configure an endpoint struct, then make a batch of sequential or concurrent requests.
 
 ## Overview
 This package is intended to provide a streamlined way to make repeated requests to an API.
@@ -7,7 +7,7 @@ This package is intended to provide a streamlined way to make repeated requests 
 Each request takes the form:
 * **Url** + **ID**
 
-URL will be fixed for an endpoint, while ID will change for each request.
+Url will be fixed for an endpoint, while ID will change for each request.
 
 For example, the National Weather Service has a JSON API. You can locate the San Diego weather office as follows:
 * https://api.weather.gov/offices/SGX
@@ -18,7 +18,7 @@ a list of office codes as the IDs:
 * FWD
 * SGX
 
-It configures the base URL in the endpoint as shown:
+It configures the base Url in the endpoint as shown:
 ```go
 ep := endpoint.Endpoint{
 	Url:         "https://api.weather.gov/offices/",
@@ -44,7 +44,7 @@ func ParseOffice(b []byte) (result interface{}, err error) {
 	return
 }
 ```
-It parses the response body using json.Unmarshal, into a struct with the expected fields and format.  By specifying
+It parses the response body (using *json.Unmarshal*) into a struct with the expected fields and format.  By specifying
 a function in the endpoint, it can be used for any kind of data.
 
 Another sample program, [examples/get-html.go](https://github.com/DavidSantia/endpoint/blob/master/examples/get-html.go),
@@ -56,10 +56,10 @@ Start with a sample response from the API you are going to access.  Then create 
 
 Next, configure an endpoint.
 * If an API Key is required, make sure you specify it in the Headers
-* Include any other headers, such as "Accept" or "Content-Type" if required
+* Include any other Headers, such as "Accept" or "Content-Type" if required
 * Make sure you specify the right Method (GET, POST, PUT, etc.)
 
-For example, a POST to an api requiring a Basic auth key might look like this:
+For example, a POST to an API requiring a Basic auth key might look like this:
 
 ```go
 ep := endpoint.Endpoint{
