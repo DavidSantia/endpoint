@@ -25,10 +25,9 @@ func (ep *Endpoint) DoSequential(ids []string) (results []interface{}) {
 	for _, id = range ids {
 		result, err = ep.DoRequest(id)
 		if err != nil {
-			fmt.Printf("Error: %v\n", err)
-		} else {
-			results = append(results, result)
+			result = err.Error()
 		}
+		results = append(results, result)
 	}
 	return
 }
@@ -64,11 +63,10 @@ func (ep *Endpoint) DoConcurrent(ids []string) (results []interface{}) {
 				id = <-inputChan
 				result, err = ep.DoRequest(id)
 				if err != nil {
-					fmt.Printf("Error: %v\n", err)
-					outputChan <- "Error"
+					outputChan <- err.Error()
+				} else {
+					outputChan <- result
 				}
-
-				outputChan <- result
 			}
 		}()
 	}
@@ -107,7 +105,11 @@ func (ep *Endpoint) DoRequest(id string) (result interface{}, err error) {
 	}
 
 	// Make request, retry if required
-	for i = 0; i < ep.MaxRetries; i++ {
+	for i = 0; i <= ep.MaxRetries; i++ {
+		if i > 0 {
+			fmt.Printf("Warn: Retry #%d for %q\n", i, id)
+			ep.Retries++
+		}
 		res, err = client.Do(req)
 		if err == nil {
 			b, err = ioutil.ReadAll(res.Body)
@@ -116,8 +118,6 @@ func (ep *Endpoint) DoRequest(id string) (result interface{}, err error) {
 				break
 			}
 		}
-		fmt.Printf("Warn: Retrying %s\n", id)
-		ep.Retries++
 	}
 	if err != nil {
 		err = fmt.Errorf("http %s request: %v", ep.Method, err)

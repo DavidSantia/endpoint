@@ -58,7 +58,7 @@ func main() {
 	results = ep.DoSequential(ids)
 	fmt.Printf("Elapsed: %v\n", time.Now().Sub(tStart))
 	fmt.Printf("Error Rate: %d retries, %.2f percent\n\n",
-		ep.Retries, float32(ep.Retries)/float32(len(ids)))
+		ep.Retries, float32(ep.Retries*100)/float32(len(ids)))
 
 	ep.Retries = 0
 	fmt.Printf("== Calling DoConcurrent [%d entries] ==\n", len(ids))
@@ -66,7 +66,7 @@ func main() {
 	results = ep.DoConcurrent(ids)
 	fmt.Printf("Elapsed: %v\n", time.Now().Sub(tStart))
 	fmt.Printf("Error Rate: %d retries, %.2f percent\n\n",
-		ep.Retries, float32(ep.Retries)/float32(len(ids)))
+		ep.Retries, float32(ep.Retries*100)/float32(len(ids)))
 
 	fmt.Printf("== Results ==\n")
 	for _, result = range results {

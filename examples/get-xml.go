@@ -46,9 +46,11 @@ func main() {
 	fmt.Printf("Elapsed: %v\n", time.Now().Sub(tStart))
 	fmt.Printf("Error Rate: %d retries\n\n", ep.Retries)
 
-	clist := result.(CategoryList)
-	for _, category := range clist.Categories {
-		fmt.Printf("* Id: %2d, Name: %s\n", category.Id, category.Name)
+	if result != nil {
+		clist := result.(CategoryList)
+		for _, category := range clist.Categories {
+			fmt.Printf("* Id: %2d, Name: %s\n", category.Id, category.Name)
+		}
 	}
 }
 
