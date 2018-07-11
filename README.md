@@ -15,7 +15,7 @@ The sample program [examples/get-json.go](https://github.com/DavidSantia/endpoin
 * https://api.weather.gov/offices/SGX
 
 So requests take the form
-* "https://api.weather.gov/offices/" (Url) + "SGX" (ID)
+* "https://api.weather.gov/offices/" (**Url**) + "SGX" (**ID**)
 
 By splitting the link into Url and ID, we can call DoConcurrent with a list of office codes, i.e.:
 * AKQ
