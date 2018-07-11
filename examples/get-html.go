@@ -49,7 +49,7 @@ func main() {
 		},
 		MaxParallel: 8,
 		MaxRetries:  3,
-		Parse:       ParseDefinition,
+		ParseFunc:   ParseDefinition,
 	}
 
 	ep.Retries = 0
@@ -75,10 +75,15 @@ func main() {
 	}
 }
 
-func ParseDefinition(b []byte) (result interface{}, err error) {
+func ParseDefinition(b []byte, code int) (result interface{}, err error) {
 	var s, text string
 	var doc *goquery.Document
 	var done bool
+
+	if code != 200 {
+		err = fmt.Errorf("status %d %s", code, http.StatusText(code))
+		return
+	}
 
 	doc, err = goquery.NewDocumentFromReader(bytes.NewReader(b))
 	if err != nil {

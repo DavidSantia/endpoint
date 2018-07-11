@@ -2,19 +2,22 @@ package endpoint
 
 import (
 	"fmt"
+	"io"
 	"io/ioutil"
 	"net/http"
+	"strings"
 )
 
 type Endpoint struct {
 	Url         string
 	Method      string
 	Headers     map[string]string
+	HeaderFunc  func(*http.Request) error
 	Client      *http.Client
 	MaxParallel int
 	MaxRetries  int
 	Retries     int
-	Parse       func(b []byte) (interface{}, error)
+	ParseFunc   func([]byte, int) (interface{}, error)
 }
 
 func (ep *Endpoint) DoSequential(ids []string) (results []interface{}) {
@@ -23,7 +26,7 @@ func (ep *Endpoint) DoSequential(ids []string) (results []interface{}) {
 	var result interface{}
 
 	for _, id = range ids {
-		result, err = ep.DoRequest(id)
+		result, err = ep.DoRequest(id, "")
 		if err != nil {
 			result = err.Error()
 		}
@@ -38,9 +41,15 @@ func (ep *Endpoint) DoConcurrent(ids []string) (results []interface{}) {
 	var result interface{}
 	var i, max int
 
+	// Set max parallelism
+	max = len(ids)/4 + 1
+	if ep.MaxParallel > 0 && max > ep.MaxParallel {
+		max = ep.MaxParallel
+	}
+
 	// make input and output channels
-	inputChan := make(chan string, ep.MaxParallel*2)
-	outputChan := make(chan interface{})
+	inputChan := make(chan string, max*2)
+	outputChan := make(chan interface{}, max)
 
 	// Load ids into channel
 	go func() {
@@ -49,19 +58,13 @@ func (ep *Endpoint) DoConcurrent(ids []string) (results []interface{}) {
 		}
 	}()
 
-	// Set max parallelism
-	max = len(ids)/4 + 1
-	if max > ep.MaxParallel {
-		max = ep.MaxParallel
-	}
-
 	// Start concurrent requestors
 	for i = 1; i <= max; i++ {
 		fmt.Printf("Starting requestor #%d\n", i)
 		go func() {
 			for {
 				id = <-inputChan
-				result, err = ep.DoRequest(id)
+				result, err = ep.DoRequest(id, "")
 				if err != nil {
 					outputChan <- err.Error()
 				} else {
@@ -82,22 +85,43 @@ func (ep *Endpoint) DoConcurrent(ids []string) (results []interface{}) {
 	return
 }
 
-func (ep *Endpoint) DoRequest(id string) (result interface{}, err error) {
+func (ep *Endpoint) DoRequest(id, data string) (result interface{}, err error) {
 	var client *http.Client
 	var req *http.Request
 	var res *http.Response
 	var i int
 	var b []byte
+	var rdr io.Reader
+
+	// Validate endpoint parameters
+	if ep.ParseFunc == nil {
+		panic("DoRequest requires Endpoint.ParseFunc")
+	}
+	if len(ep.Method) == 0 {
+		panic("DoRequest requires Endpoint.Method")
+	}
 
 	// Create request from endpoint
-	req, err = http.NewRequest(ep.Method, ep.Url+id, nil)
+	if len(data) > 0 {
+		rdr = strings.NewReader(data)
+	}
+	req, err = http.NewRequest(ep.Method, ep.Url+id, rdr)
 
 	// Add headers
 	for key, value := range ep.Headers {
 		req.Header.Add(key, value)
 	}
 
-	// Get client
+	// Call custom header function
+	if ep.HeaderFunc != nil {
+		err = ep.HeaderFunc(req)
+		if err != nil {
+			err = fmt.Errorf("custom HeaderFunc: %v", err)
+			return
+		}
+	}
+
+	// Configure client
 	if ep.Client == nil {
 		client = http.DefaultClient
 	} else {
@@ -120,13 +144,13 @@ func (ep *Endpoint) DoRequest(id string) (result interface{}, err error) {
 		}
 	}
 	if err != nil {
-		err = fmt.Errorf("http %s request: %v", ep.Method, err)
+		err = fmt.Errorf("failure for %q %v", id, err)
 		return
 	}
 
-	result, err = ep.Parse(b)
+	result, err = ep.ParseFunc(b, res.StatusCode)
 	if err != nil {
-		err = fmt.Errorf("http %s response: %v", ep.Method, err)
+		err = fmt.Errorf("failure for %q %v", id, err)
 		return
 	}
 	return

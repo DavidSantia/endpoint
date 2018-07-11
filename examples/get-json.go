@@ -4,10 +4,10 @@ import (
 	"encoding/json"
 	"fmt"
 	"net/http"
+	"reflect"
 	"time"
 
 	"github.com/DavidSantia/endpoint"
-	"reflect"
 )
 
 type Office struct {
@@ -69,7 +69,7 @@ func main() {
 		},
 		MaxParallel: 8,
 		MaxRetries:  3,
-		Parse:       ParseOffice,
+		ParseFunc:   ParseOffice,
 	}
 
 	ep.Retries = 0
@@ -103,11 +103,15 @@ func main() {
 	}
 }
 
-func ParseOffice(b []byte) (result interface{}, err error) {
+func ParseOffice(b []byte, code int) (result interface{}, err error) {
 	var office Office
 
-	err = json.Unmarshal(b, &office)
+	if code != 200 {
+		err = fmt.Errorf("status %d %s", code, http.StatusText(code))
+		return
+	}
 
+	err = json.Unmarshal(b, &office)
 	result = office
 	return
 }

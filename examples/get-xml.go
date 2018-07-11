@@ -33,13 +33,13 @@ func main() {
 		Client:      &http.Client{Timeout: 10 * time.Second},
 		MaxParallel: 8,
 		MaxRetries:  3,
-		Parse:       ParseCategoryList,
+		ParseFunc:   ParseCategoryList,
 	}
 
 	ep.Retries = 0
 	fmt.Printf("== Calling DoRequest ==\n")
 	tStart = time.Now()
-	result, err = ep.DoRequest(id)
+	result, err = ep.DoRequest(id, "")
 	if err != nil {
 		fmt.Println(err)
 	}
@@ -52,13 +52,21 @@ func main() {
 			fmt.Printf("* Id: %2d, Name: %s\n", category.Id, category.Name)
 		}
 	}
+
+	fmt.Printf("\n== Error test ==\n")
+	result, err = ep.DoRequest("foo", "")
+	fmt.Printf("Error: %v\n", err)
 }
 
-func ParseCategoryList(b []byte) (result interface{}, err error) {
+func ParseCategoryList(b []byte, code int) (result interface{}, err error) {
 	var clist CategoryList
 
-	err = xml.Unmarshal(b, &clist)
+	if code != 200 {
+		err = fmt.Errorf("status %d %s", code, http.StatusText(code))
+		return
+	}
 
+	err = xml.Unmarshal(b, &clist)
 	result = clist
 	return
 }
