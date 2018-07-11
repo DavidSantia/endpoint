@@ -67,7 +67,7 @@ Next, configure an endpoint.
 * Include any Headers, such as "Accept" or "Content-Type" if required
 * Add a Header function if you need dynamically calculated headers
 * Make sure you specify the right Method (GET, POST, PUT, etc.)
-* Add a client to customize a request timeout
+* Add a Client to customize a request timeout
 
 For example, a POST to an API requiring a Basic auth key and a timestamp might look like this:
 ```go
