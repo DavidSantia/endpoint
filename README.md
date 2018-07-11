@@ -116,8 +116,8 @@ Error Rate: 0 retries, 0.00 percent
 ```
 
 DoConcurrent() uses the setting *ep.MaxParallel* to configure the maximum concurrency to use.
-The sample programs set this to 8. This is a pretty good setting depending on the bandwith of your
-internet connection, and the bandwidth of the API you are accessing.
+The sample programs set this to 8. This setting depends on the bandwith of your internet connection,
+and the bandwidth of the API you are accessing.  If you don't define it, it will default to 100.
 
 If you set it too high, you may see the error rate of retries go up.
 ```
