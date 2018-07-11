@@ -30,7 +30,7 @@ ep := endpoint.Endpoint{
 	Headers:     map[string]string{"Content-Type": "application/json", "Accept": "*"},
 	MaxParallel: 8,
 	MaxRetries:  3,
-	Parse:       ParseOffice,
+	ParseFunc:   ParseOffice,
 }
 ```
 
