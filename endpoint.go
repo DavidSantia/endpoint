@@ -46,6 +46,9 @@ func (ep *Endpoint) DoConcurrent(ids []string) (results []interface{}) {
 	if ep.MaxParallel > 0 && max > ep.MaxParallel {
 		max = ep.MaxParallel
 	}
+	if max > 100 {
+		max = 100
+	}
 
 	// make input and output channels
 	inputChan := make(chan string, max*2)
@@ -81,7 +84,6 @@ func (ep *Endpoint) DoConcurrent(ids []string) (results []interface{}) {
 	}
 
 	close(inputChan)
-	close(outputChan)
 	return
 }
 
