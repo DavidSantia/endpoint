@@ -11,7 +11,7 @@ Url will be fixed for an endpoint, while ID will change for each request.
 
 ### Weather Offices, JSON API example
 
-The sample program [examples/get-json.go](https://github.com/DavidSantia/endpoint/blob/master/examples/get-json.go) uses the National Weather Service JSON API. For example, you can use this API to locate the San Diego weather office as follows:
+The sample program [examples/get-json.go](https://github.com/DavidSantia/endpoint/blob/master/examples/get-json.go) uses the National Weather Service API. For example, you can use this API to locate the San Diego weather office as follows:
 * https://api.weather.gov/offices/SGX
 
 So requests take the form
