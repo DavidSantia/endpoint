@@ -22,7 +22,7 @@ By splitting the link into Url and ID, we can call DoConcurrent with a list of o
 * FWD
 * SGX
 
-The program configures the base Url in the endpoint as shown:
+The program configures the endpoint as shown:
 ```go
 ep := endpoint.Endpoint{
 	Url:         "https://api.weather.gov/offices/",
