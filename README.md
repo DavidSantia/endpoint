@@ -11,16 +11,18 @@ Url will be fixed for an endpoint, while ID will change for each request.
 
 ### Weather Offices, JSON API example
 
-For example, the National Weather Service has a JSON API. You can locate the San Diego weather office as follows:
+The sample program [examples/get-json.go](https://github.com/DavidSantia/endpoint/blob/master/examples/get-json.go) uses the National Weather Service JSON API. For example, you can use this api to locate the San Diego weather office as follows:
 * https://api.weather.gov/offices/SGX
 
-The sample program [examples/get-json.go](https://github.com/DavidSantia/endpoint/blob/master/examples/get-json.go) has
-a list of office codes as the IDs:
+So requests take the form
+* "https://api.weather.gov/offices/" (Url) + "SGX" (ID)
+
+By splitting the link into Url and ID, we can call DoConcurrent with a list of office codes, i.e.:
 * AKQ
 * FWD
 * SGX
 
-It configures the base Url in the endpoint as shown:
+The program configures the base Url in the endpoint as shown:
 ```go
 ep := endpoint.Endpoint{
 	Url:         "https://api.weather.gov/offices/",
@@ -32,10 +34,10 @@ ep := endpoint.Endpoint{
 }
 ```
 
-Notice we are specifying the Url, the request Method, any headers, some additional parameters, and the function
+It specifies the Url, the request Method, any headers, some additional parameters, and the function
 needed to parse the API response body.
 
-The parse function is simply:
+This parse function is simply:
 ```go
 func ParseOffice(b []byte, code int) (result interface{}, err error) {
     var office Office
@@ -49,7 +51,7 @@ func ParseOffice(b []byte, code int) (result interface{}, err error) {
 }
 ```
 It parses the response body (using *json.Unmarshal*) into a struct with the expected fields and format.  By specifying
-a function in the endpoint, it can be used for any kind of data.
+a function in the endpoint, this package can be used for any kind of data.
 
 ### Biology Definitions, HTML example
 
