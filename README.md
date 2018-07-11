@@ -34,7 +34,7 @@ ep := endpoint.Endpoint{
 }
 ```
 
-It specifies the Url, the request Method, any headers, some additional parameters, and the function
+This specifies the Url, the request Method, any headers, some additional parameters, and the function
 needed to parse the API response body.
 
 This parse function is simply:
