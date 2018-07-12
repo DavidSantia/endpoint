@@ -89,7 +89,6 @@ func SendEmail(ep endpoint.Endpoint, to, cc, subject, body string) (err error) {
 
 	result, err = ep.DoRequest("", data.Encode())
 	if err != nil {
-		log.Printf("Error sending email: %v\n", err)
 		return
 	}
 
