@@ -58,6 +58,12 @@ a function in the endpoint, this package can be used for any kind of data.
 Another sample program, [examples/get-html.go](https://github.com/DavidSantia/endpoint/blob/master/examples/get-html.go),
 parses an HTML page, locating a specific paragraph containing the definition of a given term.
 
+### Send Email, AWS SES example
+
+Another sample program, [examples/post-aws.go](https://github.com/DavidSantia/endpoint/blob/master/examples/post-aws.go),
+posts an email using AWS SES, and parses the XML response.  It illustrates using a Header function, and the data body
+in ep.DoRequest() instead of an ID.
+
 ## How to use the package
 
 Start with a sample response from the API you are going to access.  Then create a parse function for that response.
